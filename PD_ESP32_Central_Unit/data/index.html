@@ -1,0 +1,694 @@
+<!DOCTYPE HTML5>
+<html> <!--command line CTRL+SHIFT+P -> life server: change...-->
+<head>
+<title>Esp32 AsyncWS</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" type="text/css" href="styl.css"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Days+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarpanch:wght@800&display=swap" rel="stylesheet">
+<!--font awesome-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://kit.fontawesome.com/5f5c33d332.js" crossorigin="anonymous"></script> <!--MOj klucz FA5-->
+
+<!--jquery-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+</head>
+<body>
+<header>
+<i class="fa fa-sliders"></i>  ESP32 Smart Home Platform
+
+</header>
+
+  <div id="nav">
+	<div class="items active" id="it1">Czujniki</div>
+	<div class="items" id="it2">Sterowanie</div>
+	<div class="items" id="it3">Ustawienia</div>
+  </div>
+
+<div id="content">
+	<!--Strona 1-->
+
+	<!--dodatki / info-->
+	<div class="elem firstMenu">
+		<div class="elem_head">Aktualizacja<br>T/C/W</div>
+		<i class="fa fa-refresh" style="font-size:48px;color:rgb(18, 236, 164)"></i>
+		<div id="updTime" class="VALL_DISP">...</div>
+	</div>
+
+	<div class="elem firstMenu">
+		<div class="elem_head">Danych <br>ESP-FLASH</div>
+		<i class="fas fa-database" style="font-size:48px;color:rgb(58, 58, 58)"></i>
+		<div id="dNumHolder" class="VALL_DISP">...</div>
+	</div>
+
+	<!--Czujniki - pomieszczenie-->
+	<div class="elem firstMenu">
+		<div class="elem_head">Temperatura</div>
+		<i class="fas fa-temperature-high" style="font-size:48px;color:rgb(45, 63, 230)"></i>
+		<div id="tempholder" class="VALL_DISP">...</div>
+		<div id="outtempholder" style="color: white; font-size: 16px;">...</div>
+	</div>
+
+	<div class="elem firstMenu">
+		<div class="elem_head">Wilgotność</div>
+		<i class="fa fa-percent" style="font-size:48px;color:rgb(6, 114, 39)"></i>
+
+		<div id="humholder" class="VALL_DISP">...</div>
+	</div>
+
+	<div class="elem firstMenu">
+		<div class="elem_head">Ciśnienie</div>
+		<i class="fa fa-bar-chart" style="font-size:48px;color:rgb(211, 69, 51)"></i>
+
+		<div id="pressholder" class="VALL_DISP">...</div>
+	</div>
+
+	<!--Czujniki - kotlownia-->
+	<div class="elem firstMenu">
+		<div class="elem_head">Temp. CO</div>
+		<i class="fa fa-thermometer-half" style="font-size:48px;color:rgb(250, 195, 76)"></i>
+
+		<div id="COTempHolder" class="VALL_DISP">...</div>
+	</div>
+
+	<div class="elem firstMenu">
+		<div class="elem_head">LPG/Dym</div>
+		<i id="styled_icon" class="fas fa-skull-crossbones" style="font-size:48px;"></i>
+
+		<div id="BRGasHolder" class="VALL_DISP">...</div>
+	</div>
+
+<!--Strona 3-->
+<div class="roomContainer thirdMenu">
+	<div class="room_head">Częstotliwość magazynowania danych</div>
+		<div class="roomSubContainer">
+			<div class="elem">
+				<div class="elem_head">Ustawiona</div>
+				<i class="fas fa-hourglass-half" style="font-size:48px;color:rgb(209, 66, 66)"></i>
+				<div id="refFreqHolder" class="VALL_DISP">...</div>
+			</div>
+	
+			<div class="elem">
+				<div class="elem_head">Nowa</div>
+				<i class="fa fa-clock-o" style="font-size:48px;color:rgb(53, 53, 53)"></i>
+				<div><input class="numInputVal1" type="number" min="1" step="1" value="" id="refFreq" onchange="getSendRefFrequency('1')"> Min.</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div class="roomContainer thirdMenu">
+		<div class="room_head">Częstotliwość wysyłania do ThingSpeak</div>
+			<div class="roomSubContainer">
+				<div class="elem">
+					<div class="elem_head">Ustawiona</div>
+					<i class="fas fa-hourglass-half" style="font-size:48px;color:rgb(209, 66, 66)"></i>
+					<div id="refFreqTSHolder" class="VALL_DISP">...</div>
+				</div>
+		
+				<div class="elem">
+					<div class="elem_head">Nowa</div>
+					<i class="fa fa-clock-o" style="font-size:48px;color:rgb(53, 53, 53)"></i>
+					<div><input class="numInputVal1" type="number" min="1" step="1" value="" id="refTSFreq" onchange="getSendRefTSFrequency('1')"> Min.</div>
+				</div>
+		
+			</div>
+		</div>
+
+	<!--strona 2-->
+
+		<!-- OSWIETLENIE - RGB LED -->
+		<div class="wideElem elem secMenu">
+		<div class="elem_head">Taśma RGB LED</div>
+			<div class="parent">
+				<div class="LED_BG" id="LED1_BG"></div>
+				<div class="LED_FG" style="padding:5px;"><i id="led1" class="fa fa-lightbulb-o" style="font-size:48px;"></i>
+				</div>
+			</div>
+			<div class="ledVal" id="LEDval1">KOLOR</div>
+			<!--Input przy duzej rozdzielczosci-->
+			<input id="inpLED1" name="inpLED1" class="colorPick" type="color" value="#FFCC00" >
+			<!--Input przy malej rozdzielczosci-->
+			<canvas id="LED1Hue" class="HSL_CAN"></canvas>
+			<input id="LED1_H" class="HSL_CAN slider" type="range" min="0" max="255" value="0" >
+			<canvas id="LED1Sat" class="HSL_CAN"></canvas>
+			<input id="LED1_S" class="HSL_CAN slider" type="range" min="0" max="255" value="255" >
+			<canvas id="LED1Val" class="HSL_CAN"></canvas>
+			<input id="LED1_V" class="HSL_CAN slider" type="range" min="0" max="255" value="128" >
+			<!--Predefiniowane kolory-->
+			<div class="userColors">
+
+				<div class="usrColContainer">
+					<div id="LED1_K1_V" class="usrColHolder" onclick="loadFavColor('LED1',1)"><div class="favColTxt">#K1</div></div>
+					<div id="LED1_K1_S" class="usrColSaveBtn" onclick="setFavColCookie('LED1',60,1)">Zapisz</div>
+				</div>
+				<div class="usrColContainer">
+					<div id="LED1_K2_V" class="usrColHolder" onclick="loadFavColor('LED1',2)"><div class="favColTxt">#K2</div></div>
+					<div id="LED1_K2_S" class="usrColSaveBtn" onclick="setFavColCookie('LED1',60,2)">Zapisz</div>
+				</div>
+				<div class="usrColContainer">
+					<div id="LED1_K3_V" class="usrColHolder" onclick="loadFavColor('LED1',3)"><div class="favColTxt">#K3</div></div>
+					<div id="LED1_K3_S" class="usrColSaveBtn" onclick="setFavColCookie('LED1',60,3)">Zapisz</div>
+				</div>
+				<div class="usrColContainer">
+					<div id="LED1_K4_V" class="usrColHolder" onclick="loadFavColor('LED1',4)"><div class="favColTxt">#K4</div></div>
+					<div id="LED1_K4_S" class="usrColSaveBtn" onclick="setFavColCookie('LED1',60,4)">Zapisz</div>
+				</div>
+			</div>		
+		</div>
+			  
+		<!--Przekaznik #1-->
+		<div class="elem secMenu">
+			<div class="elem_head">Urządzenie #1</div>
+				<div class="parent">
+					<i id ="sw1" class="fa fa-power-off" style="font-size:48px;"></i><br>
+				</div>
+				  <label class="switch">
+				  <input name="input1" id="chk1" type="checkbox" value="RELAY_1" onchange="sendSwitch()" >
+				  <span class="sliderTGL round"></span>
+				  </label> 
+				  <div class="VALL_DISP" id="chkbox1">OFF</div>
+			</div>
+
+		<!--Oswietlenie - White LED-->
+		<div class="wideElem elem secMenu">
+			<div class="elem_head">Taśma LED</div>
+				<div class="parent">
+					<div class="LED_BG"></div>
+					<div class="LED_FG" style="padding:5px; color:white"><i class="fa fa-signal" style="font-size:48px; color:black;"></i></div>
+				</div> 
+				<div class="VALL_DISP" id="oneLedRangeValDisp" >OFF</div>
+				<input class="slider" type="range" min="0" max="1023" value="512" id="oneLedRangeVal" onchange="sendOneLEDVal()" oninput="updOneLEDVal()">
+		</div>
+
+		<!-- OSWIETLENIE 3x LED-->
+		<div class="elem secMenu">
+			<div class="elem_head">Taśma LED #1</div>
+				<div class="parent">
+					<div class="LED_BG" id="LEDs11_bg"></div>
+					<div class="LED_FG" style="padding:5px; color:white"><i id="led11" class="fa fa-lightbulb-o" style="font-size:48px;"></i></div>
+				</div>
+				<div id="LEDs11_val" class="VALL_MINOR_TXT">Wył.</div>
+			<input id="LEDs11_inp" name="LEDs11_inp" class="colorPick" type="color" value="#000000" oninput="updateLED('LEDs11')">
+			<button type="button" class="btn2" value="#000000" onclick="LEDsOFF('LEDs11')">Wyłącz</button>
+			</div>
+			<!-- OSWIETLENIE -->
+			<div class="elem secMenu">
+			<div class="elem_head">Taśma LED #2</div>
+				<div class="parent">
+					<div class="LED_BG" id="LEDs12_bg"></div>
+					<div class="LED_FG" style="padding:5px; color:white"><i id="led12" class="fa fa-lightbulb-o" style="font-size:48px;"></i></div>
+				</div> 
+				<div id="LEDs12_val" class="VALL_MINOR_TXT">Wył.</div>
+			<input id="LEDs12_inp" name="LEDs12_inp" class="colorPick" type="color" value="#000000" oninput="updateLED('LEDs12')">
+			<button type="button" class="btn2" value="#000000" onclick="LEDsOFF('LEDs12')">Wyłącz</button>
+			</div>
+			<!-- OSWIETLENIE -->
+			<div class="elem secMenu">
+			<div class="elem_head">Taśma LED #3</div>
+				<div class="parent">
+					<div class="LED_BG" id="LEDs13_bg"></div>
+					<div class="LED_FG" style="padding:5px; color:white"><i id="led13" class="fa fa-lightbulb-o" style="font-size:48px;"></i></div>
+				</div>
+				<div id="LEDs13_val" class="VALL_MINOR_TXT">Wył.</div>
+			<input id="LEDs13_inp" name="LEDs13_inp" class="colorPick" type="color" value="#000000" oninput="updateLED('LEDs13')">
+			<button type="button" class="btn2" value="#000000" onclick="LEDsOFF('LEDs13')">Wyłącz</button>
+			</div>
+
+</div> <!--content-->
+
+
+	<footer id="ftr">
+		ESP
+	</footer>
+</body>
+
+
+<script> // SKRYPT JavaScript+JQuery+AJAX
+// ZMIENNE
+const ESP_IP = "192.168.1.35";
+
+const LED1_HUE = document.getElementById("LED1_H");
+const LED1_SAT = document.getElementById("LED1_S");
+const LED1_VAL = document.getElementById("LED1_V");
+const INP_LED1 = document.getElementById("inpLED1");
+
+var LED_1_HSV = {H:0, S:0, V:0}
+var LED_2_RGB = {R:0, G:0, B:0}
+
+// PRE-WYWOLANIE FUNKCJI
+$(document).ready(function(){
+	httpGetData()
+	httpGetCOData()
+	updDataNum()
+	hideMenuAtStart()
+	getSendRefFrequency()
+	getSendRefTSFrequency()
+	getOutTemp()
+	createHSVcan("LED1Hue",'H')
+	createHSVcan("LED1Sat",'S')
+	createHSVcan("LED1Val",'V')
+	getFavColors('LED1')
+});
+
+// INTERWALY
+setInterval(function (){if (currSite==1)httpGetData()},10000);
+setInterval(function (){if (currSite==1)httpGetCOData()},5000);
+setInterval(function(){if (currSite==1)updDataNum()},1000*300);
+setInterval(function (){if (currSite==1)getOutTemp()},5000);
+// LISTENER'Y
+document.getElementById("it1").addEventListener("click",navClick)
+document.getElementById("it2").addEventListener("click",navClick)
+document.getElementById("it3").addEventListener("click",navClick)
+
+function getJSdateTime(dType)
+{
+var date = new Date();
+var day = date.getDate(),
+	month = date.getMonth() + 1,
+	year = date.getFullYear(),
+	hour = date.getHours(),
+	min  = date.getMinutes(),
+	sec = date.getSeconds();
+
+	month = (month < 10 ? "0" : "") + month;
+	day = (day < 10 ? "0" : "") + day;
+	hour = (hour < 10 ? "0" : "") + hour;
+	min = (min < 10 ? "0" : "") + min;
+	sec = (sec < 10 ? "0" : "") + sec;
+
+var currDate = year + "-" + month + "-" + day,
+	currTime = hour + ":" + min + ":" + sec; 
+	switch (dType)
+	{
+		case 'd': return currDate;
+		case 't': return currTime;
+		case 'a': return currDate+'-'+currTime;
+		default: return;
+	}
+}
+
+// Funkcje konwersji HEX-HSV-RGB
+function HEXtoRGB(hex){
+	var vRGB = hex.replace('#','');
+	var RGBVAL = parseInt(vRGB,16);
+	var RGBArr = [];
+	RGBArr[0] = RGBVAL >> 16; RGBArr[1] = RGBVAL >> 8 & 255; RGBArr[2] = RGBVAL & 255;
+	return RGBArr;
+}
+
+function hslToHex(h, s, l) { // 0-360, 0-100, 0-100
+	l /= 100;
+	const a = s * Math.min(l, 1 - l) / 100;
+	const f = n => {
+		const k = (n + h / 30) % 12;
+		const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+		return Math.round(255 * color).toString(16).padStart(2, '0');
+	};
+	return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// Zapytaj ESP o aktualne dane co 10 sekund
+function httpGetData(){		
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+	if (this.readyState == 4 && this.status == 200) {
+		var mJson = JSON.parse(this.responseText);
+		var space = (mJson.D).indexOf(" ")
+		var YDM = (mJson.D).substring(0,space)
+		var HMS = (mJson.D).substring(space,(mJson.D).lenth)
+		$("#updTime").html(HMS+"<br> <font size='4'>"+YDM+"</font>")
+		$("#tempholder").html(mJson.T +" &#176;C");
+		$("#humholder").html(mJson.H+" %");
+		$("#pressholder").html(mJson.C+"<br> hPa");
+		}
+	};
+	xhr.open("GET", "http://"+ESP_IP+"/getCurrData", true);
+	xhr.send();		
+}
+
+// Zapytaj ESP o dane T/GAS
+function httpGetCOData(){
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+	if (this.readyState == 4 && this.status == 200) {
+		//console.log("RES:"+this.responseText)
+		var mJson = JSON.parse(this.responseText);
+		var space = (mJson.D).indexOf(" ")
+		var YDM = (mJson.D).substring(0,space)
+		var HMS = (mJson.D).substring(space,(mJson.D).lenth)
+		$("#COTempHolder").html(mJson.TCO +" &#176;C<br><p style='font-size:14px; margin: 0 0 0 0;'>("+HMS+" )</p>"); 
+		var GASPCTG = mJson.GAS
+		if (GASPCTG > 200 && GASPCTG <= 250) $("#styled_icon").css("color","yellow")
+		else if (GASPCTG > 250) $("#styled_icon").css("color","red")
+		else $("#styled_icon").css("color","green")
+		$("#BRGasHolder").html(GASPCTG+"/1024<br><p style='font-size:14px; margin: 0 0 0 0;'>("+HMS+" )</p>");
+		console.log("ESP podalo CO")
+		}
+	}; 
+	xhr.open("GET", "http://"+ESP_IP+"/getCOData", true);
+	xhr.send();		
+}
+
+// Zaagregowanych danych w pamieci FLASH ESP32
+function updDataNum(){
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http://"+ESP_IP+"/getDataNums", true);
+		xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			$("#dNumHolder").html(this.responseText);
+			}
+		};
+		xhr.send(null);
+}
+
+// zarzadzanie elementami menu
+var currSite = 1
+function hideMenuAtStart(){
+	var secM = document.getElementsByClassName("secMenu")
+	var thirdM = document.getElementsByClassName("thirdMenu") 
+	for(var i = 0; i < secM.length; i++)
+		{secM[i].style.display = "none"}
+	for(var i = 0; i < thirdM.length; i++)
+		{thirdM[i].style.display = "none"}
+}
+
+function navClick(e){
+	var items = document.getElementsByClassName("items")
+	var frstM = document.getElementsByClassName("firstMenu")
+	var secM = document.getElementsByClassName("secMenu")
+	var thirdM = document.getElementsByClassName("thirdMenu")
+	e.target.classList.add("active")
+		if (e.target.id=="it1")
+		{
+		currSite = 1
+		for(var i = 0; i < frstM.length; i++)
+		{frstM[i].style.display = "inline-flex"}
+		for(var i = 0; i < secM.length; i++)
+		{secM[i].style.display = "none"}
+		for(var i = 0; i < thirdM.length; i++)
+		{thirdM[i].style.display = "none"}
+		$("#it2").removeClass("active")
+		$("#it3").removeClass("active")
+		}
+		if (e.target.id=="it2")
+		{
+		currSite = 2
+		for(var i = 0; i < frstM.length; i++)
+		{frstM[i].style.display = "none"}
+		for(var i = 0; i < secM.length; i++)
+		{secM[i].style.display = "inline-flex"}
+		for(var i = 0; i < thirdM.length; i++)
+		{thirdM[i].style.display = "none"}
+		$("#it1").removeClass("active")
+		$("#it3").removeClass("active")
+		}
+		if (e.target.id=="it3")
+		{
+		currSite = 3
+		for(var i = 0; i < frstM.length; i++)
+		{frstM[i].style.display = "none"}
+		for(var i = 0; i < secM.length; i++)
+		{secM[i].style.display = "none"}
+		for(var i = 0; i < thirdM.length; i++)
+		{thirdM[i].style.display = "inline-flex"}
+		$("#it1").removeClass("active")
+		$("#it2").removeClass("active")
+		}
+}
+
+function updLED(LEDnum){
+	var rgbCOL,RGBArr,LEDAddr
+		rgbCOL = document.getElementById("inpLED1").value;
+		RGBArr = HEXtoRGB(rgbCOL);
+		document.getElementById(LEDnum+'_BG').style.backgroundColor = rgbCOL;
+		document.getElementById("LEDval1").innerHTML = rgbCOL;
+	var mesage = "Red="+RGBArr[0]+"&Green="+RGBArr[1]+"&Blue="+RGBArr[2];
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http://"+ESP_IP+"/get"+LEDnum+"?"+mesage, true);
+		xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			console.log(this.responseText)}};
+		xhr.send(null);
+}	
+
+// 3x LED 2022
+function updateLED(LEDnum)
+{
+	if(LEDnum == 'LEDs11') LEDid = 'LEDs1'
+	if(LEDnum == 'LEDs12') LEDid = 'LEDs2'
+	if(LEDnum == 'LEDs13') LEDid = 'LEDs3'
+	var rgbCOL = document.getElementById(LEDnum+"_inp").value
+	document.getElementById(LEDnum+"_bg").style.backgroundColor = rgbCOL;
+	var RGBArr = HEXtoRGB(rgbCOL);
+	if (RGBArr[0]==0 && RGBArr[1]==0 && RGBArr[2]==0)
+	{
+		document.getElementById(LEDnum+"_val").innerHTML = "Wył."
+	}
+	else
+	{
+		//document.getElementById(LEDid+"_val").innerHTML = rgbCOL +
+		document.getElementById(LEDnum+"_val").innerHTML = RGBArr[0]+" "+RGBArr[1]+" "+RGBArr[2];
+	}
+	
+	var mesage = "Red="+RGBArr[0]+"&Green="+RGBArr[1]+"&Blue="+RGBArr[2];
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http://"+ESP_IP+"/get"+LEDid+"?"+mesage, true);
+
+			//HTTPReq
+			xhr.onreadystatechange = function() {
+			if (this.readyState == 4 && this.status == 200) {
+				console.log("ESP ODP: "+this.responseText)
+				}
+			};
+			xhr.send(null);
+}	
+
+function LEDsOFF(lNum)
+{
+
+		document.getElementById(lNum+"_inp").value = "#000000"
+		updateLED(lNum)
+	
+}
+
+function sendSwitch(){
+	var xhr = new XMLHttpRequest();
+	var swstate = document.getElementById("chk1").checked;
+	$("#chkbox1").html((swstate) ? "<font color='green'>ON</font>" : "<font color='red'>OFF</font>")
+	$("#sw1").css("color",(swstate) ? "green" : "red")
+	xhr.open("GET", "http://"+ESP_IP+"/getSW1?input1="+!swstate, true);
+		xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			// Odpowiedz i reakcja kiedy modul nie odpowiada
+			console.log("Odpowiedz ESP: "+this.responseText)
+			}
+		};
+		xhr.send(null);
+}
+
+function updOneLEDVal()
+{
+	var ledValState = document.getElementById("oneLedRangeVal").value;
+	$("#oneLedRangeValDisp").html(ledValState > 0 ? Math.ceil(ledValState*0.09765625)+"%" : "OFF")
+}
+
+function sendOneLEDVal(){
+	var xhr = new XMLHttpRequest();
+	var ledValState = document.getElementById("oneLedRangeVal").value;
+	xhr.open("GET", "http://"+ESP_IP+"/getONE_LED_W1?input1="+ledValState, true);
+		xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			console.log(this.responseText)
+			}
+		};
+		xhr.send(null);
+}
+
+function getSendRefFrequency(update){
+	var xhr = new XMLHttpRequest();
+	if (update==="1")
+	{
+		var RF = $("#refFreq").val()
+		xhr.open("GET", "http://"+ESP_IP+"/getSetRefresh?input1="+RF, true);
+	}
+	else {xhr.open("GET", "http://"+ESP_IP+"/getSetRefresh", true);}
+		xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			$("#refFreqHolder").html(this.responseText+" min.")
+			$("#refFreq").val(parseInt(this.responseText,10))
+			}
+		};
+		xhr.send(null);
+}
+
+function getSendRefTSFrequency(update){
+	var xhr = new XMLHttpRequest();
+	if (update==="1")
+	{
+		var RF = $("#refTSFreq").val()
+		xhr.open("GET", "http://"+ESP_IP+"/getSetTSRefresh?input1="+RF, true);
+	}
+	else {xhr.open("GET", "http://"+ESP_IP+"/getSetTSRefresh", true);}
+		xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			$("#refFreqTSHolder").html(this.responseText+" min.")
+			$("#refTSFreq").val(parseInt(this.responseText,10))
+			}
+		};
+		xhr.send(null);
+	}
+	
+// Debounce
+const debounce = (func, delay) => {
+	let debounceTimer
+	return function() {
+		const context = this
+		const args = arguments
+			clearTimeout(debounceTimer)
+				debounceTimer
+			= setTimeout(() => func.apply(context, args), delay)
+	}
+} 
+
+LED1_HUE.addEventListener('input', debounce(function() { updLedHSV('LED1') },50) )	
+LED1_SAT.addEventListener('input', debounce(function() { updLedHSV('LED1') },50) )	
+LED1_VAL.addEventListener('input', debounce(function() { updLedHSV('LED1') },50) )	
+INP_LED1.addEventListener('input', debounce(function() { updLED('LED1') },50) )	
+
+function createHSVcan(can,HUE){
+	var canvas = document.getElementById(can);
+	var ctx = canvas.getContext("2d");
+	var canW = canvas.width;
+	ctx.font = "12px Arial";
+	switch(HUE)
+	{
+	case 'H':
+		{
+		var grd = ctx.createLinearGradient(0, 0, canW, 0);
+		grd.addColorStop(0, "red");
+		grd.addColorStop(0.33, "green");
+		grd.addColorStop(0.66, "blue");
+		grd.addColorStop(1, "red");
+		ctx.fillStyle = grd;
+		ctx.fillRect(0, 0, canW, 180);
+		break;
+		}
+	case 'S':
+		{
+		var grd = ctx.createLinearGradient(0, 0, canW, 0);
+		grd.addColorStop(0, "gray");
+		grd.addColorStop(1, "red");
+		ctx.fillStyle = grd;
+		ctx.fillRect(0, 0, canW, 180);
+		break;
+		}
+	case 'V':
+		{
+		var grd = ctx.createLinearGradient(0, 0, canW, 0);
+		grd.addColorStop(0, "black");
+		grd.addColorStop(0.5, "red");
+		grd.addColorStop(1, "white");
+		ctx.fillStyle = grd;
+		ctx.fillRect(0, 0, canW, 180);
+		break;
+		}
+	}
+}
+
+function getFavColors(LED){
+	document.getElementById(LED+'_K1_V').style.backgroundColor = loadFavColCookie(LED+'_K1')
+	document.getElementById(LED+'_K2_V').style.backgroundColor = loadFavColCookie(LED+'_K2')
+	document.getElementById(LED+'_K3_V').style.backgroundColor = loadFavColCookie(LED+'_K3')
+}
+
+function loadFavColor(LED,slot){
+	var hexCol = loadFavColCookie(LED+'_K'+slot)
+	document.getElementById('inp'+LED).value = hexCol
+	updLED(LED)
+}
+
+function setFavColCookie(cname, exdays, slot) {
+	var hex = document.getElementById('inp'+cname).value
+	document.getElementById(cname+'_K'+slot+'_V').style.backgroundColor = hex
+	const d = new Date();
+	d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+	let expires = "expires="+d.toUTCString();
+	document.cookie = cname + '_K' + slot + "=" + hex + ";" + expires + ";path=/";
+}
+
+function loadFavColCookie(cname) {
+	let name = cname + "=";
+	let ca = document.cookie.split(';');
+	for(let i = 0; i < ca.length; i++) {
+		let c = ca[i];
+		while (c.charAt(0) == ' ') {c = c.substring(1);}
+		if (c.indexOf(name) == 0) {return c.substring(name.length, c.length);}
+	}
+	return "";
+}
+
+function updLedHSV(LED){
+	LED_1_HSV.H = document.getElementById(LED+'_H').value
+	LED_1_HSV.S = document.getElementById(LED+'_S').value
+	LED_1_HSV.V = document.getElementById(LED+'_V').value
+	console.log(LED_1_HSV.H+" "+LED_1_HSV.S+" "+LED_1_HSV.V)
+	//wspolczynniki		0-360(1.4117647)		0-100(0.392156862745)		0-100(0.392156862745)
+	var hex = hslToHex(LED_1_HSV.H*1.4117647, LED_1_HSV.S*0.392156862745, LED_1_HSV.V*0.392156862745)
+	document.getElementById('inp'+LED).value = hex
+	document.getElementById(LED+'_BG').style.backgroundColor = hex
+	updHSVCanvas(LED)
+	updLED(LED)
+}
+
+function updHSVCanvas(LED){
+	var canS = document.getElementById(LED+'Sat');
+	var canV = document.getElementById(LED+'Val');
+	var ctxS = canS.getContext("2d");
+	var ctxV = canV.getContext("2d");
+	var canSW = canS.width;
+	var canVW = canV.width;
+
+	var LED_HSV = {H:0, S:0, V:0}
+	LED_HSV.H = document.getElementById(LED+'_H').value
+	LED_HSV.S = document.getElementById(LED+'_S').value
+	LED_HSV.V = document.getElementById(LED+'_V').value
+	var hex = hslToHex(LED_HSV.H*1.4117647, LED_HSV.S*0.392156862745, LED_HSV.V*0.392156862745)
+
+	var grd = ctxS.createLinearGradient(0, 0, canSW, 0);
+	grd.addColorStop(0, "gray");
+	grd.addColorStop(1, hex);
+	ctxS.fillStyle = grd;
+	ctxS.fillRect(0, 0, canSW, 180);
+
+	var grd = ctxV.createLinearGradient(0, 0, canVW, 0);
+	grd.addColorStop(0, "black");
+	grd.addColorStop(0.5, hex);
+	grd.addColorStop(1, "white");
+	ctxV.fillStyle = grd;
+	ctxV.fillRect(0, 0, canVW, 180);
+}
+
+function getOutTemp(){		
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			$("#outtempholder").html('<div style="color:black;">(Na zawnątrz)<br>'+this.responseText+"</div>")
+			}
+		};
+	xhr.open("GET", "https://api.thingspeak.com/apps/thinghttp/send_request?api_key=Z7AMCOJVN5YWPD3O", true); // adres API Thinghttp(temp. na zewnatrz)
+	xhr.send();		
+}
+
+setInterval(function(){
+$("#ftr").html("Markowiak &copy "+getJSdateTime('a'))
+},1000) 
+</script>
+</html>
